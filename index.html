@@ -8,26 +8,44 @@
 <body>
     <h1>My HTML5 Game Library</h1>
 
-  <div class="gallery" id="gallery">
-    <div class="game-card" onclick="loadGame('games.html')">
-      <img src="circle clicker.png" alt="Click the Circle" />
-      <h3>Click the Circle</h3>
-    </div>
-    <div class="game-card" onclick="loadGame('racing-game.html')">
-      <img src="thumb2.jpg" alt="Racing Game" />
-      <h3>Racing Mania</h3>
-    </div>
-    <!-- Add more game cards -->
+  <div class="categories">
+    <button class="active" onclick="filterGames('all')">All</button>
+    <button onclick="filterGames('action')">Action</button>
+    <button onclick="filterGames('racing')">Racing</button>
+    <button onclick="filterGames('puzzle')">Puzzle</button>
   </div>
 
-  <iframe id="gameFrame"></iframe>
+  <div class="gallery" id="gallery">
+    <a class="game-card" data-category="action" href="circle-game.html">
+      <img src="thumbs/thumb1.jpg" alt="Click the Circle">
+      <h3>Click the Circle</h3>
+    </a>
+    <a class="game-card" data-category="racing" href="racing-game.html">
+      <img src="thumbs/thumb2.jpg" alt="Racing Game">
+      <h3>Racing Mania</h3>
+    </a>
+    <a class="game-card" data-category="puzzle" href="puzzle-game.html">
+      <img src="thumbs/thumb3.jpg" alt="Puzzle Game">
+      <h3>Puzzle Pop</h3>
+    </a>
+    <!-- Add more cards here -->
+  </div>
 
   <script>
-    function loadGame(url) {
-      const frame = document.getElementById("gameFrame");
-      frame.src = url;
-      frame.style.display = "block";
-      window.scrollTo({ top: frame.offsetTop, behavior: 'smooth' });
+    function filterGames(category) {
+      const cards = document.querySelectorAll('.game-card');
+      const buttons = document.querySelectorAll('.categories button');
+
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      cards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
     }
   </script>
 </body>
