@@ -6,8 +6,11 @@
     <title>title</title>
 </head>
 <body>
-    <h1>Click the Circle!</h1>
-    <a href="index.html" class="goback">Go Back</a>
+  <a href="index.html" class="goback">Go Back</a>
+  <div class="game-container">
+  <!-- Embed the game script or iframe here -->
+  <h1>Click the Circle!</h1>
+    
 
   <div id="scoreboard">
     Score: <span id="score">0</span> |
@@ -17,7 +20,7 @@
 
   <div id="gameArea"></div>
 
-  <button id="restartBtn">Restart Game</button>
+  <button id="restartBtn" class="rsbutton">Restart Game</button>
 
   <script>
     const gameArea = document.getElementById("gameArea");
@@ -93,5 +96,24 @@
 
     startGame();
   </script>
+
+  <!-- Bottom bar -->
+  <div class="game-bar">
+    <div class="game-info">
+      <img src="circle clicker icon.png" alt="Game Icon">
+      <div class="title-author">
+        <div class="game-title">Circle Clicker</div>
+        <div class="game-author">door Fl3xi</div>
+      </div>
+    </div>
+    <div class="game-actions">
+      <span>👍 38.4K</span>
+      <span>💬 5.3K</span>
+      <button>⛶</button>
+    </div>
+  </div>
+</div>
+  
+</div>
 </body>
 </html>
