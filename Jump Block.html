@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <title>Puzzle Game</title>
+</head>
+<body>
+  <div class="goback">
+  <a href="index.html">Go Back</a>
+  </div>
+<div class="game-container">
+  <!-- Embed the game script or iframe here -->
+  <div id="gameContainer">
+  <canvas id="gameCanvas" width="600" height="200"></canvas>
+
+  <!-- Score Displays -->
+  <div id="scoreDisplay">Score: 0</div>
+  <div id="topScoreDisplay">Top Score: 0</div>
+
+  <!-- Menu Overlay -->
+  <div id="menuScreen" class="overlay">
+    <h2>Jump Block!</h2>
+    <p>Press space to jump red blocks!</p>
+    <button onclick="startGame()">Play Game</button>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div id="gameOverScreen" class="overlay" style="display: none;">
+    <h2 id="gameOverText"></h2>
+    <button onclick="startGame()">Restart</button>
+    <button onclick="showMenu()">Main Menu</button>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const menuScreen = document.getElementById("menuScreen");
+  const gameOverScreen = document.getElementById("gameOverScreen");
+  const gameOverText = document.getElementById("gameOverText");
+  const scoreDisplay = document.getElementById("scoreDisplay");
+  const topScoreDisplay = document.getElementById("topScoreDisplay");
+
+  // Optional image support
+  let useImages = true;
+  let playerImg = new Image();
+  let obstacleImg = new Image();
+  playerImg.src = "jesse2.png";       // Optional: replace with your image path
+  obstacleImg.src = "hamburger.png";   // Optional: replace with your image path
+
+  let player, obstacles, gravity, score, topScore, obstacleSpeed, spawnRate, frame, spawnTimer, gameRunning;
+
+  function resetGame() {
+    player = {
+  x: 50,
+  y: canvas.height - 60,  // Adjust to match the height of your image
+  width: 60,
+  height: 60,
+  dy: 0,
+  onGround: true
+};
+    gravity = 0.8;
+    obstacles = [];
+    score = 0;
+    topScore = parseInt(localStorage.getItem("jumpTopScore")) || 0;
+    obstacleSpeed = 5;
+    spawnRate = 90;
+    spawnTimer = 0;
+    frame = 0;
+    gameRunning = true;
+    updateScoreDisplays();
+  }
+
+  function updateScoreDisplays() {
+    scoreDisplay.textContent = "Score: " + score;
+    topScoreDisplay.textContent = "Top Score: " + topScore;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw player
+    if (useImages) {
+      ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+    } else {
+      ctx.fillStyle = "#4caf50";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    // Draw obstacles
+    obstacles.forEach(o => {
+      if (useImages) {
+        ctx.drawImage(obstacleImg, o.x, o.y, o.width, o.height);
+      } else {
+        ctx.fillStyle = "#f44336";
+        ctx.fillRect(o.x, o.y, o.width, o.height);
+      }
+    });
+  }
+
+  function endGame() {
+    gameRunning = false;
+    if (score > topScore) {
+      topScore = score;
+      localStorage.setItem("jumpTopScore", topScore);
+    }
+    updateScoreDisplays();
+    gameOverText.textContent = `Game Over! Score: ${score}`;
+    gameOverScreen.style.display = "flex";
+  }
+
+  function update() {
+    if (!gameRunning) return;
+
+    frame++;
+
+    if (frame % 600 === 0 && obstacleSpeed < 12) {
+      obstacleSpeed += 1;
+      if (spawnRate > 40) spawnRate -= 5;
+    }
+
+    if (!player.onGround) {
+      player.dy += gravity;
+      player.y += player.dy;
+      if (player.y >= 170) {
+        player.y = 170;
+        player.dy = 0;
+        player.onGround = true;
+      }
+    }
+    if (player.y >= canvas.height - player.height) {
+  player.y = canvas.height - player.height;
+  player.dy = 0;
+  player.onGround = true;
+}
+
+    spawnTimer++;
+    if (spawnTimer >= spawnRate) {
+      spawnTimer = 0;
+      if (obstacleSpeed >= 9 && Math.random() < 0.3) {
+        const gap = 40;
+        obstacles.push(
+          { x: 600, y: 170, width: 20, height: 30 },
+          { x: 600 + 20 + gap, y: 170, width: 20, height: 30 }
+        );
+      } else {
+        obstacles.push({ x: 600, y: 170, width: 20, height: 30 });
+      }
+    }
+
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[i];
+      o.x -= obstacleSpeed;
+
+      if (
+        player.x < o.x + o.width &&
+        player.x + player.width > o.x &&
+        player.y + player.height > o.y
+      ) {
+        endGame();
+        return;
+      }
+
+      if (o.x + o.width < 0) {
+        obstacles.splice(i, 1);
+        i--;
+        score++;
+        updateScoreDisplays();
+      }
+    }
+
+    draw();
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && player.onGround && gameRunning) {
+      player.dy = -12;
+      player.onGround = false;
+    }
+  });
+
+  function gameLoop() {
+    update();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function startGame() {
+    resetGame();
+    menuScreen.style.display = "none";
+    gameOverScreen.style.display = "none";
+  }
+
+  function showMenu() {
+    menuScreen.style.display = "flex";
+    gameOverScreen.style.display = "none";
+  }
+
+  // Start game loop
+  gameLoop();
+</script>
+
+  <!-- Bottom bar -->
+  <div class="game-bar">
+    <div class="game-info">
+      <img src="hamburger.jpg" alt="Game Icon">
+      <div class="title-author">
+        <div class="game-title">Hamburger Jump</div>
+        <div class="game-author">door Fl3xi</div>
+      </div>
+    </div>
+    <div class="game-actions">
+      <span>👍 38.4K</span>
+      <span>💬 5.3K</span>
+      <button>⛶</button>
+    </div>
+  </div>
+</div>
+  
+</body>
+</html>
