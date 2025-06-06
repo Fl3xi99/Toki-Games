@@ -18,74 +18,99 @@
   <br>
 
   <script>
-    const board = document.getElementById('game-board');
-    const restartBtn = document.getElementById('restart');
-    let flippedCards = [];
-    let lockBoard = false;
+  const board = document.getElementById('game-board');
+  const restartBtn = document.getElementById('restart');
+  let flippedCards = [];
+  let lockBoard = false;
 
-    const emojis = ['🐶', '🐱', '🐸', '🐵', '🐧', '🦊', '🐰', '🐯'];
-    let cards = [...emojis, ...emojis];
+  const emojis = ['🐶', '🐱', '🐸', '🐵', '🐧', '🦊', '🐰', '🐯'];
+  let cards = [...emojis, ...emojis];
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+  // Sound effects
+  const clickSound = new Audio('SOUNDS/click.wav');
+  clickSound.volume = 0.3;
+
+  const matchSound = new Audio('SOUNDS/match.wav');
+  matchSound.volume = 0.4;
+
+  const wrongSound = new Audio('SOUNDS/wrong.wav');
+  wrongSound.volume = 0.3;
+
+  const winSound = new Audio('SOUNDS/win.mp3');
+  winSound.volume = 0.5;
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function createBoard() {
+    board.innerHTML = '';
+    shuffle(cards);
+    flippedCards = [];
+    lockBoard = false;
+
+    cards.forEach((emoji, index) => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.dataset.emoji = emoji;
+      card.dataset.index = index;
+      card.textContent = '';
+      card.addEventListener('click', flipCard);
+      board.appendChild(card);
+    });
+  }
+
+  function flipCard(e) {
+    if (lockBoard) return;
+    const card = e.currentTarget;
+    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+    clickSound.play();
+    card.textContent = card.dataset.emoji;
+    card.classList.add('flipped');
+    flippedCards.push(card);
+
+    if (flippedCards.length === 2) {
+      checkMatch();
+    }
+  }
+
+  function checkMatch() {
+    lockBoard = true;
+    const [card1, card2] = flippedCards;
+    const match = card1.dataset.emoji === card2.dataset.emoji;
+
+    if (match) {
+      matchSound.play();
+      card1.classList.add('matched');
+      card2.classList.add('matched');
+      flippedCards = [];
+      lockBoard = false;
+
+      if (document.querySelectorAll('.matched').length === cards.length) {
+        setTimeout(() => winSound.play(), 500);
       }
-    }
-
-    function createBoard() {
-      board.innerHTML = '';
-      shuffle(cards);
-      cards.forEach((emoji, index) => {
-        const card = document.createElement('div');
-        card.classList.add('card');
-        card.dataset.emoji = emoji;
-        card.dataset.index = index;
-        card.textContent = '';
-        card.addEventListener('click', flipCard);
-        board.appendChild(card);
-      });
-    }
-
-    function flipCard(e) {
-      if (lockBoard) return;
-      const card = e.currentTarget;
-      if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
-
-      card.textContent = card.dataset.emoji;
-      card.classList.add('flipped');
-      flippedCards.push(card);
-
-      if (flippedCards.length === 2) {
-        checkMatch();
-      }
-    }
-
-    function checkMatch() {
-      lockBoard = true;
-      const [card1, card2] = flippedCards;
-      const match = card1.dataset.emoji === card2.dataset.emoji;
-
-      if (match) {
-        card1.classList.add('matched');
-        card2.classList.add('matched');
+    } else {
+      wrongSound.play();
+      setTimeout(() => {
+        card1.textContent = '';
+        card2.textContent = '';
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
         flippedCards = [];
         lockBoard = false;
-      } else {
-        setTimeout(() => {
-          card1.textContent = '';
-          card2.textContent = '';
-          card1.classList.remove('flipped');
-          card2.classList.remove('flipped');
-          flippedCards = [];
-          lockBoard = false;
-        }, 1000);
-      }
+      }, 1000);
     }
+  }
 
-    restartBtn.addEventListener('click', createBoard);
-    createBoard();
-  </script>
+  restartBtn.addEventListener('click', createBoard);
+  createBoard();
+</script>
+
+
 
   <!-- Bottom bar -->
   <div class="game-bar">
