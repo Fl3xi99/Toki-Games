@@ -49,11 +49,13 @@ body {
     .rsbutton{
       margin-top: 20px;
       padding: 10px 20px;
-      background: #333;
+      background: #1e90ff;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin-left: 230px;
+      font-weight: bold;
     }
 
     .categories {
