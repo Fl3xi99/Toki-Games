@@ -2,7 +2,7 @@ body {
       padding: 0;
       font-family: Arial, sans-serif;
       background: #f0f0f0;
-      background-image: url(PHOTOS/background\ 2.webp);
+      background-image: url(/PHOTOS/background\ 2.webp);
       background-size: cover;
     }
 
@@ -19,7 +19,7 @@ body {
       background-color: #fff;
       overflow: hidden;
       margin: 20px auto;
-      background-image: url(PHOTOS/circle\ clicker\ background.jpeg);
+      background-image: url(/PHOTOS/circle\ clicker\ background.jpeg);
       background-size: cover;
       background-position: center;
       
