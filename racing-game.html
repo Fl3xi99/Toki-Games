@@ -16,7 +16,13 @@
 <div class="game-container">
   <h1>Race Mania</h1>
   <div class="info">Score: <span id="score">0</span> | High Score: <span id="highscore">0</span></div>
+
   <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+  <div class="controls">
+    <div class="btn" id="leftBtn">⬅️</div>
+    <div class="btn" id="rightBtn">➡️</div>
+  </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -52,7 +58,6 @@
     function drawRoad() {
       ctx.fillStyle = '#444';
       ctx.fillRect(roadX, 0, roadWidth, canvasHeight);
-
       ctx.strokeStyle = '#888';
       ctx.lineWidth = 4;
       for (let i = 1; i < numLanes; i++) {
@@ -111,7 +116,7 @@
           ctx.font = "40px Arial";
           ctx.fillText("Game Over", 190, 300);
           ctx.font = "20px Arial";
-          ctx.fillText("Press R to Restart", 215, 340);
+          ctx.fillText("Tap or Press R to Restart", 175, 340);
           return;
         }
 
@@ -132,19 +137,29 @@
       document.getElementById('score').textContent = score;
       gameRunning = true;
       spawnObstacle();
+      requestAnimationFrame(updateGame);
     }
 
     document.addEventListener('keydown', (e) => {
-      if (!gameRunning && e.key.toLowerCase() === 'r') {
-        resetGame();
-        requestAnimationFrame(updateGame);
-      }
-
+      if (!gameRunning && e.key.toLowerCase() === 'r') resetGame();
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
         if (car.lane > 0) car.lane--;
       } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
         if (car.lane < numLanes - 1) car.lane++;
       }
+    });
+
+    // Mobile buttons
+    document.getElementById('leftBtn').addEventListener('click', () => {
+      if (car.lane > 0) car.lane--;
+    });
+    document.getElementById('rightBtn').addEventListener('click', () => {
+      if (car.lane < numLanes - 1) car.lane++;
+    });
+
+    // Tap screen to restart if game over
+    canvas.addEventListener('click', () => {
+      if (!gameRunning) resetGame();
     });
 
     // Start the game
