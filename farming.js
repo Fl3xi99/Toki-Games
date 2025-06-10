@@ -1,4 +1,4 @@
-// Farming Game with Crop Types, Land Expansion, Leveling System & XP Bar
+// Farming Game with Save/Load, Leveling, Expansion, Inventory, Crop Types
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -6,9 +6,9 @@ const tileSize = 40;
 const rows = 10;
 const cols = 16;
 
-const field = Array(rows).fill().map(() => Array(cols).fill(null));
-const timers = Array(rows).fill().map(() => Array(cols).fill(0));
-const landMap = Array(rows).fill().map(() => Array(cols).fill(false));
+let field = Array(rows).fill().map(() => Array(cols).fill(null));
+let timers = Array(rows).fill().map(() => Array(cols).fill(0));
+let landMap = Array(rows).fill().map(() => Array(cols).fill(false));
 
 const player = { x: 7, y: 4 };
 let keys = {};
@@ -53,25 +53,62 @@ cropTypes.wheat.imageGrown.src = "PHOTOS/wheat.png";
 cropTypes.corn.image.src = "PHOTOS/corn_half.png";
 cropTypes.corn.imageGrown.src = "PHOTOS/corn.png";
 
-[playerImg, cropTypes.wheat.image, cropTypes.wheat.imageGrown, cropTypes.corn.image, cropTypes.corn.imageGrown].forEach(img => img.onload = () => {});
-
-// Unlock initial land (middle 8 tiles)
-for (let y = 4; y < 6; y++) {
-  for (let x = 6; x < 10; x++) {
-    landMap[y][x] = true;
+// Load saved game state if available
+function loadGame() {
+  const saved = localStorage.getItem("farmingSave");
+  if (saved) {
+    const data = JSON.parse(saved);
+    field = data.field;
+    timers = data.timers;
+    landMap = data.landMap;
+    inventory = data.inventory;
+    playerStats = data.playerStats;
+    selectedCrop = data.selectedCrop;
+  } else {
+    // Initial land unlock
+    for (let y = 4; y < 6; y++) {
+      for (let x = 6; x < 10; x++) {
+        landMap[y][x] = true;
+      }
+    }
   }
 }
 
-// Input handlers
+function saveGame() {
+  const data = {
+    field,
+    timers,
+    landMap,
+    inventory,
+    playerStats,
+    selectedCrop
+  };
+  localStorage.setItem("farmingSave", JSON.stringify(data));
+}
+
+setInterval(saveGame, 1000); // Auto-save every second
+
 document.addEventListener("keydown", e => {
-  keys[e.key] = true;
+  let key = e.key.toLowerCase();
+  if (key === "&") key = "1"; // AZERTY
+  if (key === "é") key = "2";
+  keys[key] = true;
 });
+
 document.addEventListener("keyup", e => {
-  keys[e.key] = false;
-  if ([" ", "m"].includes(e.key)) actionLock = false;
+  let key = e.key.toLowerCase();
+  if (key === "&") key = "1";
+  if (key === "é") key = "2";
+  keys[key] = false;
+  if ([" ", "m"].includes(key)) actionLock = false;
 });
 
 function update() {
+  if (keys["l"]) {
+    loadGame(); // Press "L" to load saved game
+    keys["l"] = false;
+  }
+
   if (marketOpen) {
     if (keys["s"] && inventory.crops[selectedCrop] > 0) {
       inventory.crops[selectedCrop]--;
@@ -89,10 +126,10 @@ function update() {
       keys["e"] = false;
     }
   } else {
-    if (keys["ArrowLeft"]) { player.x = Math.max(0, player.x - 1); keys["ArrowLeft"] = false; }
-    if (keys["ArrowRight"]) { player.x = Math.min(cols - 1, player.x + 1); keys["ArrowRight"] = false; }
-    if (keys["ArrowUp"]) { player.y = Math.max(0, player.y - 1); keys["ArrowUp"] = false; }
-    if (keys["ArrowDown"]) { player.y = Math.min(rows - 1, player.y + 1); keys["ArrowDown"] = false; }
+    if (keys["arrowleft"]) { player.x = Math.max(0, player.x - 1); keys["arrowleft"] = false; }
+    if (keys["arrowright"]) { player.x = Math.min(cols - 1, player.x + 1); keys["arrowright"] = false; }
+    if (keys["arrowup"]) { player.y = Math.max(0, player.y - 1); keys["arrowup"] = false; }
+    if (keys["arrowdown"]) { player.y = Math.min(rows - 1, player.y + 1); keys["arrowdown"] = false; }
 
     if (keys[" "] && !actionLock && landMap[player.y][player.x]) {
       const tile = field[player.y][player.x];
@@ -114,6 +151,7 @@ function update() {
     marketOpen = !marketOpen;
     actionLock = true;
   }
+
   if (keys["1"]) selectedCrop = "wheat";
   if (keys["2"]) selectedCrop = "corn";
 
@@ -170,7 +208,6 @@ function draw() {
   ctx.fillText(`Level: ${playerStats.level}`, 10, canvas.height - 40);
   ctx.fillText(`XP: ${playerStats.xp}/${playerStats.xpToNext}`, 10, canvas.height - 20);
 
-  // XP bar
   ctx.fillStyle = "#000";
   ctx.fillRect(140, canvas.height - 30, 120, 10);
   const xpRatio = playerStats.xp / playerStats.xpToNext;
@@ -200,10 +237,7 @@ function unlockMoreLand() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       if (landMap[y][x]) {
-        const neighbors = [
-          [x - 1, y], [x + 1, y],
-          [x, y - 1], [x, y + 1]
-        ];
+        const neighbors = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
         for (let [nx, ny] of neighbors) {
           if (nx >= 0 && ny >= 0 && nx < cols && ny < rows && !landMap[ny][nx]) {
             frontier.push([nx, ny]);
@@ -228,4 +262,5 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+loadGame();  // Load game once at start
 gameLoop();
