@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <title>Puzzle Game</title>
+  <link rel="icon" href="PHOTOS/favicon2.ico" type="image/x-icon">
+</head>
+<body>
+  <div class="goback">
+  <a href="index.html">Go Back</a>
+  </div>
+<div class="game-container">
+  <!-- Embed the game script or iframe here -->
+   <h1>🚀 Sky Dodger</h1>
+  <div class="scoreboard">
+    Score: <span id="score">0</span> |
+    High Score: <span id="highscore">0</span>
+  </div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div class="controls">
+    <button class="btn" id="leftBtn">⬅️</button>
+    <button class="btn" id="rightBtn">➡️</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const player = {
+      x: 180,
+      y: 500,
+      width: 40,
+      height: 40,
+      color: "lightblue",
+      speed: 5
+    };
+
+    const meteors = [];
+    const meteorSpeed = 3;
+    const spawnInterval = 1000;
+
+    let score = 0;
+    let highScore = localStorage.getItem("sky-highscore") || 0;
+    let gameRunning = true;
+
+    document.getElementById("highscore").textContent = highScore;
+
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.moveTo(player.x + 20, player.y);
+      ctx.lineTo(player.x, player.y + 40);
+      ctx.lineTo(player.x + 40, player.y + 40);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawMeteor(meteor) {
+      ctx.fillStyle = "orange";
+      ctx.beginPath();
+      ctx.arc(meteor.x, meteor.y, meteor.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i];
+        m.y += meteorSpeed;
+        drawMeteor(m);
+
+        if (
+          m.x > player.x &&
+          m.x < player.x + player.width &&
+          m.y + m.radius > player.y
+        ) {
+          endGame();
+          return;
+        }
+
+        if (m.y > canvas.height) {
+          meteors.splice(i, 1);
+          score++;
+          document.getElementById("score").textContent = score;
+        }
+      }
+
+      if (gameRunning) requestAnimationFrame(update);
+    }
+
+    function endGame() {
+      gameRunning = false;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("sky-highscore", highScore);
+        document.getElementById("highscore").textContent = highScore;
+      }
+      ctx.fillStyle = "white";
+      ctx.font = "36px Arial";
+      ctx.fillText("Game Over", 100, 300);
+      ctx.font = "20px Arial";
+      ctx.fillText("Tap or press R to restart", 100, 340);
+    }
+
+    function spawnMeteor() {
+      const radius = 15 + Math.random() * 10;
+      const x = radius + Math.random() * (canvas.width - 2 * radius);
+      meteors.push({ x, y: -radius, radius });
+    }
+
+    function resetGame() {
+      score = 0;
+      meteors.length = 0;
+      player.x = 180;
+      gameRunning = true;
+      document.getElementById("score").textContent = score;
+      requestAnimationFrame(update);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!gameRunning && e.key.toLowerCase() === "r") resetGame();
+      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") {
+        player.x -= player.speed * 2;
+      } else if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") {
+        player.x += player.speed * 2;
+      }
+    });
+
+    document.getElementById("leftBtn").addEventListener("click", () => {
+      player.x -= player.speed * 2;
+    });
+
+    document.getElementById("rightBtn").addEventListener("click", () => {
+      player.x += player.speed * 2;
+    });
+
+    canvas.addEventListener("click", () => {
+      if (!gameRunning) resetGame();
+    });
+
+    setInterval(spawnMeteor, spawnInterval);
+    requestAnimationFrame(update);
+  </script>
+ 
+
+  <!-- Bottom bar -->
+  <div class="game-bar">
+    <div class="game-info">
+      <img src="PHOTOS/farmer.png" alt="Game Icon">
+      <div class="title-author">
+        <div class="game-title">Farming Sim</div>
+        <div class="game-author">door Fl3xi</div>
+      </div>
+    </div>
+    <div class="game-actions">
+      <span>👍 38.4K</span>
+      <span>💬 5.3K</span>
+      <button>⛶</button>
+    </div>
+  </div>
+</div>
+  
+</body>
+</html>

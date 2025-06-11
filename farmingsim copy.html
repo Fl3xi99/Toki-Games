@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <title>Puzzle Game</title>
+  <link rel="icon" href="PHOTOS/favicon2.ico" type="image/x-icon">
+</head>
+<body>
+  <div class="goback">
+  <a href="index.html">Go Back</a>
+  </div>
+<div class="game-container">
+  <!-- Embed the game script or iframe here -->
+  <div class="scoreboard" style="text-align: center; font-size: 20px; font-weight: bold;">
+    Score: <span id="score">0</span> | High Score: <span id="highscore">0</span>
+  </div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let fruits = [];
+    let score = 0;
+    let highScore = localStorage.getItem("fruit-highscore") || 0;
+    let gameOver = false;
+
+    document.getElementById("highscore").textContent = highScore;
+
+    function randomFruit() {
+      const types = ["🍎", "🍉", "🍌", "🍇", "💣"];
+      return types[Math.floor(Math.random() * types.length)];
+    }
+
+    function spawnFruit() {
+      const x = Math.random() * (canvas.width - 40) + 20;
+      const y = canvas.height + 20;
+      const speedY = -(8 + Math.random() * 4);
+      const type = randomFruit();
+      fruits.push({ x, y, radius: 25, speedY, type, hit: false });
+    }
+
+    function drawFruit(f) {
+      ctx.font = "30px serif";
+      ctx.fillText(f.type, f.x - 15, f.y + 10);
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = fruits.length - 1; i >= 0; i--) {
+        const f = fruits[i];
+        f.y += f.speedY;
+        f.speedY += 0.2; // gravity
+        drawFruit(f);
+
+        if (f.y > canvas.height + 50) {
+          fruits.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    function checkHit(x, y) {
+      for (let i = fruits.length - 1; i >= 0; i--) {
+        const f = fruits[i];
+        const dx = x - f.x;
+        const dy = y - f.y;
+        if (!f.hit && Math.sqrt(dx * dx + dy * dy) < f.radius) {
+          f.hit = true;
+          if (f.type === "💣") {
+            endGame();
+          } else {
+            fruits.splice(i, 1);
+            score++;
+            document.getElementById("score").textContent = score;
+            if (score > highScore) {
+              highScore = score;
+              localStorage.setItem("fruit-highscore", highScore);
+              document.getElementById("highscore").textContent = highScore;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    function endGame() {
+      gameOver = true;
+      ctx.fillStyle = "red";
+      ctx.font = "36px Arial";
+      ctx.fillText("💥 Game Over!", 100, 300);
+      ctx.font = "18px Arial";
+      ctx.fillText("Tap to restart", 140, 340);
+    }
+
+    function resetGame() {
+      fruits = [];
+      score = 0;
+      document.getElementById("score").textContent = score;
+      gameOver = false;
+      requestAnimationFrame(update);
+    }
+
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (gameOver) {
+        resetGame();
+      } else {
+        checkHit(x, y);
+      }
+    });
+
+    canvas.addEventListener("touchstart", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      for (const touch of e.touches) {
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        if (gameOver) {
+          resetGame();
+        } else {
+          checkHit(x, y);
+        }
+      }
+    });
+
+    setInterval(() => {
+      if (!gameOver) spawnFruit();
+    }, 800);
+
+    requestAnimationFrame(update);
+  </script>
+ 
+
+  <!-- Bottom bar -->
+  <div class="game-bar">
+    <div class="game-info">
+      <img src="PHOTOS/farmer.png" alt="Game Icon">
+      <div class="title-author">
+        <div class="game-title">Fruit Slive</div>
+        <div class="game-author">door Fl3xi</div>
+      </div>
+    </div>
+    <div class="game-actions">
+      <span>👍 38.4K</span>
+      <span>💬 5.3K</span>
+      <button>⛶</button>
+    </div>
+  </div>
+</div>
+  
+</body>
+</html>
